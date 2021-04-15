@@ -12,6 +12,7 @@ for d in wordlist:
         word = d[0] + "".join(random.sample(tmp, len(tmp))) + d[-1]
         ans.append(word)
 
+
 print(ans)
 
 

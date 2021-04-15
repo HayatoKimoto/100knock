@@ -11,7 +11,7 @@ def cipher(s):
     return ans
 
 
-
+#結果
 print(cipher(s1))
 print(cipher(s2))
 
