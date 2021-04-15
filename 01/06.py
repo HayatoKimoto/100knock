@@ -15,9 +15,6 @@ biagram_Y = makeNgram(strY, 2)
 biagram_X = list(set(biagram_X))
 biagram_Y = list(set(biagram_Y))
 
-#print(biagram_X)
-#print(biagram_Y)
-
 wa = biagram_X.copy()  #xUy 和集合
 seki = []              #x∩y 積集合
 sa = biagram_X.copy()  #x/y 差集合
