@@ -1,6 +1,6 @@
 s1 = "KimotoHayato"
 s2="Dentsudai18"
-#
+
 def cipher(s):
     ans=""
     for i in s:
