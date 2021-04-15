@@ -1,7 +1,7 @@
-str1 = "パトカー"
-str2 = "タクシー"
+s1 = "パトカー"
+s2 = "タクシー"
 ans = ""
 for i in range(4):
-    ans += str1[i] + str2[i]
+    ans += s1[i] + s2[i]
     
 print(ans)

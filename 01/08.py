@@ -1,10 +1,10 @@
-s = "KimotoHayato"
-s1="Dentsudai18"
-def cipher(str):
+s1 = "KimotoHayato"
+s2="Dentsudai18"
+def cipher(s):
     ans=""
-    for i in str:
-        if (i.islower()):
-            ans += chr(219 - ord(i))
+    for i in s:
+        if (i.islower()): #islower関数は全ての文字が小文字かどうかを判断する関数
+            ans += chr(219 - ord(i)) #ord関数は文字を文字コードに変更する関数
         else:
             ans += i
             
@@ -12,8 +12,8 @@ def cipher(str):
 
 
 
-print(cipher(s))
 print(cipher(s1))
+print(cipher(s2))
 
 
 
