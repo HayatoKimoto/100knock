@@ -2,7 +2,7 @@ s = "Hi He Lied Because Boron Could Not Oxidize Fluorine. New Nations Might Also
 #先頭1文字を取り出す単語
 indexlist = [1, 5, 6, 7, 8, 9, 15, 16, 19]
 elemlist={}
-
+#
 #アルファベット以外の文字を取り除く
 s = s.replace(',', '').replace('.', '')
 

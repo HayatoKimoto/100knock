@@ -1,5 +1,5 @@
 s = "I am an NLPer"
-
+#
 def makeNgram(sequence, N):
     ngramlist = []
 
