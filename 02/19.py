@@ -2,8 +2,8 @@ import collections
 f = open("popular-names.txt", "r")
 l1_list=[]
 for l in f:
-    tmplist = []
-    tmplist = l.split("\t")
+    tmp_list = []
+    tmp_list = l.split("\t")
     l1_list.append(tmplist[0])
 
 l1_list.sort()
