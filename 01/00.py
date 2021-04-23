@@ -6,5 +6,8 @@ ans = ""
 for i in range(len(s)):
     ans+=s[-(i+1)]
 
+
 print(ans)
 
+#出力
+#desserts

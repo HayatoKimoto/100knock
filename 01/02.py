@@ -1,7 +1,7 @@
 s1 = "パトカー"
 s2 = "タクシー"
 ans = ""
-for i in range(4):
-    ans += s1[i] + s2[i]
-    
+for c1,c2 in zip(s1,s2):
+    ans+=c1+c2
+
 print(ans)
