@@ -4,7 +4,7 @@ l1_list=[]
 for l in f:
     tmp_list = []
     tmp_list = l.split("\t")
-    l1_list.append(tmplist[0])
+    l1_list.append(tmp_list[0])
 
 l1_list.sort()
 c=collections.Counter(l1_list)
