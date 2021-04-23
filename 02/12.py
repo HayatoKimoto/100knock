@@ -1,14 +1,56 @@
-f  = open('popular-names.txt', 'r')
-c1 = open("col1.txt", 'w')
-c2 = open("col2.txt", 'w')
+with open('popular-names.txt', 'r') as f,open("col1.txt", 'w')as c1,open("col2.txt", 'w') as c2:
+    for l in f:
+        c1.write(l.split('\t')[0]+'\n')
+        c2.write(l.split('\t')[1]+'\n')
+"""
+[UNIXコマンド]
+%cut -f 1 popular-names.txt
+Mary
+Anna
+Emma
+Elizabeth
+Minnie
+Margaret
+Ida
+Alice
+Bertha
+Sarah
 
-for l in f:
-    tmplist = []
-    tmplist = l.split("\t")
-    c1.write(tmplist[0]+"\n")
-    c2.write(tmplist[1]+"\n")
+%cut -f 2 popular-names.txt
+F
+F
+F
+F
+F
+F
+F
+F
+F
+F
 
-f.close()
-c1.close()
-c2.close()
-    
+[プログラムの結果]
+%open col1.txt
+Mary
+Anna
+Emma
+Elizabeth
+Minnie
+Margaret
+Ida
+Alice
+Bertha
+Sarah
+
+%open col2.txt
+F
+F
+F
+F
+F
+F
+F
+F
+F
+F
+
+"""
