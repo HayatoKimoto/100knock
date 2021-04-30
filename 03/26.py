@@ -21,7 +21,7 @@ d = dict()
 s = is_templete(text).group(1).split('\n')
 for line in s:
     line = re.sub(r'(\'{2,5})(.+?)(\1)', r'\2', line)
-    if (re.match(r'^\|\s?(.+?)\s?=\s?(.+?)$',line)):
+    if re.match(r'^\|\s?(.+?)\s?=\s?(.+?)$',line):
         inf = re.match(r'^\|\s?(.+?)\s?=\s?(.+?)$', line)
         d[inf.group(1)]=inf.group(2)
     else:

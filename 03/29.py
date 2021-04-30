@@ -43,7 +43,7 @@ for line in s:
     #28-7 その他
     line = re.sub(r'\{\{(.*?)\}\}','',line)
 
-    if (re.match(r'^\|\s?(.+?)\s?=\s?(.+?)$',line)):
+    if re.match(r'^\|\s?(.+?)\s?=\s?(.+?)$',line):
         inf = re.match(r'^\|\s?(.+?)\s?=\s?(.+?)$', line)
         d[inf.group(1)] = inf.group(2)
     else:
@@ -65,6 +65,7 @@ connection = request.urlopen(request.Request(url))
 # jsonとして受信
 response = json.loads(connection.read().decode())
 
+#print(response)
 print(response['query']['pages']['-1']['imageinfo'][0]['url'])
     
 

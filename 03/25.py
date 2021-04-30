@@ -10,7 +10,6 @@ def find_title(fname, title):
             return data['text']
 
 def is_templete(string):
-    #例）'{{基礎情報 国\n|略名 (省略)
     pattern=re.compile(r'^\{\{基礎情報.*?\n(.*?)^\}\}$',re.MULTILINE+re.DOTALL)
     return re.search(pattern,string)
 

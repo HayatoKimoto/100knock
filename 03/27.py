@@ -25,7 +25,7 @@ for line in s:
     #27 内部リンクの除去
     line = re.sub(r'\[\[([^|]*?)\|?([^|]*?)\]\]', r'\2', line)   
     
-    if (re.match(r'^\|\s?(.+?)\s?=\s?(.+?)$',line)):
+    if re.match(r'^\|\s?(.+?)\s?=\s?(.+?)$',line):
         inf = re.match(r'^\|\s?(.+?)\s?=\s?(.+?)$', line)
         d[inf.group(1)]=inf.group(2)
     else:

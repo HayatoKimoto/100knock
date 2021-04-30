@@ -1,15 +1,15 @@
 import MeCab
 
 fname='neko.txt.mecab'
-def makeMorphemes(filename):
+def make_morphemes(filename):
     with open(filename) as data_file:
         #形態素解析の辞書
-        Morphemes=[]
+        morphemes=[]
         sentence=[]
         
         for line in data_file:
             #文章の最後(EOS)まできたらfor文から抜ける
-            if(len(line.split('\t'))<2):
+            if len(line.split('\t'))<2:
                 break
 
             words=line.split('\t')[1].split(',')
@@ -21,23 +21,22 @@ def makeMorphemes(filename):
             }
             sentence.append(morpheme)
 
-            if(words[1]=='句点'):
+            if words[1]=='句点':
                 #print(sentence)
-                Morphemes.append(sentence)
+                morphemes.append(sentence)
                 sentence=[]
 
-    return Morphemes
+    return morphemes
 
-def extractVerbs_base(morphemes):
-    verbslist=[]
+def extract_verbs_base(morphemes):
+    verbs_list=[]
     for line in morphemes:
         for morpheme in line:
-            if(morpheme['pos']=='動詞'):
-                #print(morpheme['pos']+' '+morpheme['surface'])
-                verbslist.append(morpheme['base'])
+            if morpheme['pos']=='動詞' :
+                verbs_list.append(morpheme['base'])
     
-    print(verbslist)
+    print(verbs_list)
 
+Morphemes=make_morphemes(fname)
 
-
-extractVerbs_base(makeMorphemes(fname))
+extract_verbs_base(Morphemes)

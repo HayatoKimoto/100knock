@@ -1,10 +1,10 @@
 import MeCab
 
 fname='neko.txt.mecab'
-def makeMorphemes(filename):
+def make_morphemes(filename):
     with open(filename) as data_file:
         #形態素解析の辞書
-        Morphemes=[]
+        morphemes=[]
         sentence=[]
         
         for line in data_file:
@@ -23,20 +23,20 @@ def makeMorphemes(filename):
 
             if words[1]=='句点':
                 #print(sentence)
-                Morphemes.append(sentence)
+                morphemes.append(sentence)
                 sentence=[]
 
-    return Morphemes
+    return morphemes
 
 def extractA_no_B(morphemes):
     nplist=[]
     for line in morphemes:
         for i in range(1,len(line)-1):
             if line[i-1]['pos']=='名詞' and line[i]['base']=='の' and line[i+1]['pos']=='名詞':
-                #print(line[i-1]['base']+line[i]['base']+line[i+1]['base'])
                 nplist.append(line[i-1]['surface']+line[i]['surface']+line[i+1]['surface'])
 
     return nplist
 
+Morphemes=make_morphemes(fname)
 
-print(extractA_no_B(makeMorphemes(fname)))
+print(extractA_no_B(Morphemes))
