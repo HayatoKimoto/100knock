@@ -10,20 +10,31 @@ def find_title(fname, title):
             return data['text']
 
 
-def isCategory(string):
+def is_category(string):
     # カテゴリー行を正規表現で判定.
-    return re.match(r'^\[\[Category:(.+)\]\]', string)
+    # 1つめのグループにはカテゴリ名が入っている
+    # (\|?)\*?の部分は[[Category:(カテゴリ名)|*]]の|*の部分である.
+    return re.match(r'^\[\[Category:([^|]*?)(\|?)\*?\]\]', string)
 
-#rはraw文字列でエスケープシーケンス(\nや\t)を無視できる.
-#\[\[の部分はメタ文字である[を\でエスケープシーケンスしている.
-#^は先頭から一致しているかの判定.
+
 fname = 'jawiki-country.json.gz'
 text = find_title(fname, 'イギリス').split('\n')
 
 # カテゴリの行を表示する
 for line in text:
-    if isCategory(line):
-        ctg = str(isCategory(line).groups())
-        tbl = str.maketrans('', '', '()\',')
-        #maketransは関数translate()に使える変換テーブル
-        print(ctg.translate(tbl))
+    if is_category(line):
+        print(is_category(line).group(1))
+
+"""
+[プログラムの結果]
+% python 22.py 
+イギリス
+イギリス連邦加盟国
+英連邦王国
+G8加盟国
+海洋国家
+現存する君主国
+島国
+1801年に成立した国家・領域
+
+"""
