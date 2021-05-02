@@ -40,3 +40,10 @@ def extractA_no_B(morphemes):
 Morphemes=make_morphemes(fname)
 
 print(extractA_no_B(Morphemes))
+
+"""
+実行結果(長いので先頭部分のみ)
+% python 34.py
+['彼の掌', '掌の上', '書生の顔', 'はずの顔', '顔の真中', '穴の中', '書生の掌', '掌の裏', '何の事',
+
+"""

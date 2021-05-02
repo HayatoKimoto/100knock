@@ -1,4 +1,8 @@
 import MeCab
+from collections import Counter
+import numpy as np
+import matplotlib.pyplot as plt
+import japanize_matplotlib
 
 fname='neko.txt.mecab'
 def make_morphemes(filename):
@@ -28,30 +32,42 @@ def make_morphemes(filename):
 
     return morphemes
 
-def extract_noun_noun(morphemes):
-    len_words=[]
+def make_freq_counter_list(morphemes):
+    word_list=[]
     for line in morphemes:
-        tmp=[]
         for d in line:
-            if d['pos']=='名詞':
-                tmp.append(d['surface'])
-            else:
-                if len(tmp) > 1:
-                    len_words.append(''.join(tmp))
+            word_list.append(d['base'])
 
-                tmp=[]
+    c=Counter(word_list)
 
-    return len_words
+    word_most_common_list=c.most_common()
+    return word_most_common_list
 
+def make_double_log_graph(counter_list):
+    left=[]
+    height=[]
+    for i,v in enumerate(counter_list):
+        left.append(i+1)
+        height.append(v[1])
+
+
+    height=np.array(height)
+    left=np.array(left)
+
+    #print(left,height)
+    plt.plot(left,height)
+    ax=plt.gca()
+    ax.set_yscale('log')
+    ax.set_xscale('log')
+    #plt.grid(which="both") 
+
+    plt.savefig('ans39.png')
+    plt.show()
             
 Morphemes=make_morphemes(fname)
 
-print(extract_noun_noun(Morphemes))
-
+make_double_log_graph(make_freq_counter_list(Morphemes))
 """
-実行結果(長いので先頭部分のみ)
-% python 34.py
-['人間中', '一番獰悪', '時妙', '一毛', 'その後猫', '一度', 'ぷうぷうと煙', '邸内', '三毛', '書生以外', '四五遍', 'この間おさん', 
- '三馬', '御台所', 'まま奥', '住家', '終日書斎', '勉強家', '勉強家', '勤勉家', '二三ページ', '主人以外', '限り吾輩', '朝主人',
-
+[プログラムの結果]
+出力結果のグラフはans39.pngに保存
 """

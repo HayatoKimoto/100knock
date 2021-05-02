@@ -40,3 +40,10 @@ def extract_verbs_base(morphemes):
 Morphemes=make_morphemes(fname)
 
 extract_verbs_base(Morphemes)
+
+"""
+実行結果(長いので先頭部分のみ)
+% python 32.py
+['生れる', 'つく', 'する', '泣く', 'する', 'いる', '始める', '見る', '聞く', '捕える', '煮る'
+
+"""
