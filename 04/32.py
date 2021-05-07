@@ -21,7 +21,7 @@ def make_morphemes(filename):
             }
             sentence.append(morpheme)
 
-            if words[1]=='句点':
+            if words[1] == '句点':
                 #print(sentence)
                 morphemes.append(sentence)
                 sentence=[]
@@ -32,14 +32,14 @@ def extract_verbs_base(morphemes):
     verbs_list=[]
     for line in morphemes:
         for morpheme in line:
-            if morpheme['pos']=='動詞' :
+            if morpheme['pos'] == '動詞' :
                 verbs_list.append(morpheme['base'])
     
-    print(verbs_list)
+    return verbs_list
 
-Morphemes=make_morphemes(fname)
+Morphemes = make_morphemes(fname)
 
-extract_verbs_base(Morphemes)
+print(extract_verbs_base(Morphemes))
 
 """
 実行結果(長いので先頭部分のみ)

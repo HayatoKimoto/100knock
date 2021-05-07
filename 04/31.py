@@ -20,17 +20,17 @@ def make_morphemes(filename):
             }
             sentence.append(morpheme)
 
-            if words[1]=='句点' :
+            if words[1] == '句点' :
                 morphemes.append(sentence)
                 sentence=[]
 
     return morphemes
 
-def extract_verbs_sur(morphemes):
+def extract_verbs_surface(morphemes):
     verbs_list=[]
     for line in morphemes:
         for morpheme in line:
-            if morpheme['pos']=='動詞' :
+            if morpheme['pos'] == '動詞' :
                 verbs_list.append(morpheme['surface'])
     
     return verbs_list
@@ -38,7 +38,7 @@ def extract_verbs_sur(morphemes):
 
 Morphemes=make_morphemes(fname)
 
-print(extract_verbs_sur(Morphemes))
+print(extract_verbs_surface(Morphemes))
 
 
 """

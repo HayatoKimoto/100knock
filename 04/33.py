@@ -32,7 +32,7 @@ def extractA_no_B(morphemes):
     nplist=[]
     for line in morphemes:
         for i in range(1,len(line)-1):
-            if line[i-1]['pos']=='名詞' and line[i]['base']=='の' and line[i+1]['pos']=='名詞':
+            if line[i-1]['pos'] == '名詞' and line[i]['base'] == 'の' and line[i+1]['pos'] == '名詞':
                 nplist.append(line[i-1]['surface']+line[i]['surface']+line[i+1]['surface'])
 
     return nplist

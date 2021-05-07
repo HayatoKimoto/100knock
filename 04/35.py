@@ -35,7 +35,7 @@ def make_freq_counter_list(morphemes):
         for d in line:
             word_list.append(d['base'])
 
-    c=Counter(word_list)
+    c = Counter(word_list)
 
     word_most_common_list=c.most_common()
     return word_most_common_list

@@ -1,0 +1,6 @@
+// ans44
+digraph {
+	0 [label="科学と"]
+	1 [label="哲学"]
+	0 -> 1
+}

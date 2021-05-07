@@ -26,7 +26,6 @@ def make_morphemes(filename):
             sentence.append(morpheme)
 
             if words[1]=='句点' :
-                #print(sentence)
                 morphemes.append(sentence)
                 sentence=[]
 

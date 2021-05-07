@@ -3,7 +3,6 @@ import MeCab
 fname='neko.txt.mecab'
 def make_morphemes(filename):
     with open(filename) as data_file:
-        #形態素解析の辞書
         morphemes=[]
         sentence=[]
         
@@ -20,7 +19,7 @@ def make_morphemes(filename):
             }
             sentence.append(morpheme)
 
-            if words[1]=='句点':
+            if words[1] == '句点':
                 #print(sentence)
                 morphemes.append(sentence)
                 sentence=[]

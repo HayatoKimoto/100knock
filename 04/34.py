@@ -29,7 +29,7 @@ def make_morphemes(filename):
     return morphemes
 
 def extract_noun_noun(morphemes):
-    len_words=[]
+    words_list=[]
     for line in morphemes:
         tmp=[]
         for d in line:
@@ -37,11 +37,11 @@ def extract_noun_noun(morphemes):
                 tmp.append(d['surface'])
             else:
                 if len(tmp) > 1:
-                    len_words.append(''.join(tmp))
+                    words_list.append(''.join(tmp))
 
                 tmp=[]
 
-    return len_words
+    return words_list
 
             
 Morphemes=make_morphemes(fname)

@@ -54,12 +54,10 @@ def make_double_log_graph(counter_list):
     height=np.array(height)
     left=np.array(left)
 
-    #print(left,height)
     plt.plot(left,height)
     ax=plt.gca()
     ax.set_yscale('log')
     ax.set_xscale('log')
-    #plt.grid(which="both") 
 
     plt.savefig('ans39.png')
     plt.show()

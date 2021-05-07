@@ -26,7 +26,6 @@ def make_morphemes(filename):
             sentence.append(morpheme)
 
             if words[1]=='句点' :
-                #print(sentence)
                 morphemes.append(sentence)
                 sentence=[]
 
@@ -56,20 +55,22 @@ def make_bar_chart(counter_list):
         height.append(v[1])
 
 
-    height=np.array(height)
-    left=np.array(left)
+    height = np.array(height)
+    left = np.array(left)
 
 
     plt.bar(left, height)
-    plt.savefig('ans37.png')
+    plt.savefig('ans37-1.png')
     plt.show()
             
 Morphemes=make_morphemes(fname)
 
 ten_word_list=make_n_freq_counter_list_with_X(Morphemes,10,'猫')
-#print(make_n_freq_counter_list_with_X(Morphemes,10,'猫'))
 make_bar_chart(ten_word_list)
 """
 [プログラムの結果]
-出力結果のグラフはans37.pngに保存
+出力結果のグラフは
+名詞のみ    ans37.png
+全ての品詞  ans37-2.png
+に保存
 """
