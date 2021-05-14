@@ -1,4 +1,3 @@
-from graphviz import Digraph
 
 class Morph:
     def __init__(self,surface,base,pos,pos1):
@@ -40,9 +39,37 @@ class Chunk:
 
         return False
 
+    def get_base_of_verb(self):
+        for x in self.morphs:
+            if x.pos =='動詞':return x.base
+
+        return ''    
+
     def is_noun(self):
         for x in self.morphs:
             if x.pos =='名詞':return True
+
+        return False
+
+    def get_particle(self):
+        for x in self.morphs:
+            if x.pos == '助詞':return x.surface
+
+        return ''
+
+    def is_functions_verben(self):
+        flag=0
+        #s=''
+        for x in self.morphs:
+            if flag == 1 and x.base =='を':
+                return True
+            elif x.pos1 == 'サ変接続':
+                flag = 1
+                #s=x.surface
+            else :
+                flag = 0
+                #s=''
+
 
         return False
 
@@ -77,35 +104,45 @@ def get_chunk_list(filename):
 
         return sentence
 
-def make_dependence_tree(sentence,path):
-    pair_phrase_list=[]
-    dot = Digraph(comment='ans44')
+def extract_path_of_noun_to_root(sentence):
+    roots_list=[]
     for i,chunk in enumerate(sentence,0):
-        if chunk.dst == -1 :continue
 
-        pair_phrase=chunk.get_phrase()
+        if chunk.is_noun():
+            tmp=[]
+            phrase=chunk.get_phrase()
+            num=chunk.dst
+            tmp.append(phrase)
+            while(num != -1):
+                phrase=sentence[num].get_phrase()
+                num=sentence[num].dst
+                tmp.append(phrase)
+            
+            root=' -> '.join(tmp)
+            roots_list.append(root)
+            tmp=[]
 
-        if pair_phrase != '':
-            x=str(i)
-            y=str(chunk.dst)
-            dot.node(x,pair_phrase)
-            dot.node(y,sentence[chunk.dst].get_phrase())
-            dot.edge(x, y)
+    return roots_list
 
-    dot.render(path, view=False)
+
     
 
 fname='ai.ja.txt.parsed'
 article=get_chunk_list(fname)
 
 
+answer_list=[]
+for s in article:
+    roots_list=extract_path_of_noun_to_root(s)
+    answer_list.extend(roots_list)
 
-for i,s in enumerate(article,1):   
-    file_path = 'test-output/ans44-' + str(i) + '.gv'
-    make_dependence_tree(s,file_path)
+s='\n'.join(answer_list)
+with open('ans48.txt','w') as f:
+    f.write(s)
 
+print(s)
 
 '''
 [プログラムの結果](長いので一部省略)
-test-outputフォルダに保存
+ans48.txtファイルに結果を保存
 '''

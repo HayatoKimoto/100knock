@@ -40,13 +40,13 @@ class Chunk:
 
         return False
 
-    def get_base_of_most_left_verb(self):
+    def get_base_of_verb(self):
         for x in self.morphs:
             if x.pos =='動詞':return x.base
 
         return ''    
 
-    def is_noon(self):
+    def is_noun(self):
         for x in self.morphs:
             if x.pos =='名詞':return True
 
@@ -91,14 +91,14 @@ def get_chunk_list(filename):
 
 def extract_case_patterns_of_verbs(sentence):
     patterns_of_verbs_list=[]
-    for i,chunk in enumerate(sentence,0):
+    for chunk in sentence:
         if chunk.dst == -1 :continue
 
         if chunk.get_phrase() != '' and chunk.is_verb():
-            verb=chunk.get_base_of_most_left_verb()
+            verb=chunk.get_base_of_verb()
             particles_list=[]
-            for num in chunk.srcs:
-                particle=sentence[num].get_particle()
+            for i in chunk.srcs:
+                particle=sentence[i].get_particle()
                 if particle!='' :particles_list.append(particle)
 
             particles_list.sort()
@@ -127,6 +127,8 @@ with open('ans45.txt','w') as f:
 print(s)
 
 '''
+[プログラムの結果]
+ans45.txtファイルに保存
 unixコード
 sort ans45.txt | uniq -c | sort -n -r | head
   48 する       を
@@ -165,6 +167,7 @@ grep "^与える\t" ans45.txt | sort | uniq -c | sort -n -r | head
    1 与える     が など
    1 与える     に は を
    1 与える     が に
+
 
 '''
 

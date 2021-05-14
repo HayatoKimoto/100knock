@@ -38,13 +38,13 @@ class Chunk:
 
         return False
 
-    def get_base_of_most_left_verb(self):
+    def get_base_of_verb(self):
         for x in self.morphs:
             if x.pos =='動詞':return x.base
 
         return ''    
 
-    def is_noon(self):
+    def is_noun(self):
         for x in self.morphs:
             if x.pos =='名詞':return True
 
@@ -89,16 +89,16 @@ def get_chunk_list(filename):
 
 def extract_case_patterns_of_verbs(sentence):
     patterns_of_verbs_list=[]
-    for i,chunk in enumerate(sentence,0):
+    for chunk in sentence:
         if chunk.dst == -1 :continue
 
         if chunk.get_phrase() != '' and chunk.is_verb():
-            verb=chunk.get_base_of_most_left_verb()
+            verb=chunk.get_base_of_verb()
             pairs_list=[]
-            for num in chunk.srcs:
-                particle=sentence[num].get_particle()
+            for i in chunk.srcs:
+                particle=sentence[i].get_particle()
                 if particle != '' :
-                    pairs=[particle,sentence[num].get_phrase()]
+                    pairs=[particle,sentence[i].get_phrase()]
                     pairs_list.append(pairs)
 
             #print(pairs_list)
@@ -127,3 +127,8 @@ with open('ans46.txt','w') as f:
     f.write(s)
 
 print(s)
+
+'''
+[プログラムの結果]
+ans46.txtファイルに結果を保存
+'''

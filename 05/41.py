@@ -24,11 +24,13 @@ class Chunk:
         print('文節の文字列:',phrase)
         print('係り先文節インデックス番号(dst):',self.dst)
         print('係り元文節インデックス番号のリスト(srcs):',self.srcs)
-    
+
+"""    
+ai.ja.txt.parsedは　cabocha ai.ja.txt -f1で生成
+"""
 
 with open('ai.ja.txt.parsed') as f:
     morphs=[]
-    morphs_line_list=[]
     chunk = None
     chunks=[]
     sentence=[]
@@ -36,16 +38,16 @@ with open('ai.ja.txt.parsed') as f:
         line=line.replace('\n','')
         if line[0] == '*':
             inf=line.split(' ')
-            dst_num=int(inf[2][:-1])
-            chunk=Chunk(dst_num)
+            dst=int(inf[2][:-1])
+            chunk=Chunk(dst)
             chunks.append(chunk)
         elif line == 'EOS':
             if chunks :
+                #出てくる順番がインデックス番号と一致
                 for i,c in enumerate(chunks,0):
                     chunks[c.dst].srcs.append(i)
                 sentence.append(chunks)
 
-            morphs_line_list.append(morphs)
             morphs=[]
             chunks=[]
         else:
@@ -57,3 +59,25 @@ with open('ai.ja.txt.parsed') as f:
 for i,c in enumerate(sentence[1],0):
     print(i)
     c.show()
+
+'''
+[プログラムの結果](長いので一部省略)
+0
+文節の文字列: 人工知能
+係り先文節インデックス番号(dst): 17
+係り元文節インデックス番号のリスト(srcs): []
+1
+文節の文字列: （じんこうちのう、、
+係り先文節インデックス番号(dst): 17
+係り元文節インデックス番号のリスト(srcs): []
+2
+文節の文字列: AI
+係り先文節インデックス番号(dst): 3
+係り元文節インデックス番号のリスト(srcs): []
+3
+文節の文字列: 〈エーアイ〉）とは、
+係り先文節インデックス番号(dst): 17
+係り元文節インデックス番号のリスト(srcs): [2]
+4
+
+'''

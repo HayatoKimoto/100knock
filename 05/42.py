@@ -64,7 +64,7 @@ def get_chunk_list(filename):
 
         return sentence
 
-def print_pair_phrase(sentence):
+def show_pair_phrase(sentence):
     for chunk in sentence:
         if chunk.dst == -1 :continue
 
@@ -81,4 +81,19 @@ fname='ai.ja.txt.parsed'
 article=get_chunk_list(fname)
 
 for s in article:
-    print_pair_phrase(s)
+    show_pair_phrase(s)
+
+
+'''
+[プログラムの結果](長いので一部省略)
+人工知能	語
+じんこうちのう	語
+AI	エーアイとは
+エーアイとは	語
+計算	という
+という	道具を
+概念と	道具を
+コンピュータ	という
+という	道具を
+道具を	用いて
+'''

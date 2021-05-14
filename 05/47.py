@@ -38,13 +38,13 @@ class Chunk:
 
         return False
 
-    def get_base_of_most_left_verb(self):
+    def get_base_of_verb(self):
         for x in self.morphs:
             if x.pos =='動詞':return x.base
 
         return ''    
 
-    def is_noon(self):
+    def is_noun(self):
         for x in self.morphs:
             if x.pos =='名詞':return True
 
@@ -57,17 +57,16 @@ class Chunk:
         return ''
 
     def is_functions_verben(self):
-        flag=0
-        #s=''
+        flag = 0
         for x in self.morphs:
             if flag == 1 and x.base =='を':
                 return True
             elif x.pos1 == 'サ変接続':
                 flag = 1
-                #s=x.surface
+
             else :
                 flag = 0
-                #s=''
+           
 
 
         return False
@@ -111,9 +110,10 @@ def extract_synac_of_functions_verben(sentence):
         if chunk.is_functions_verben():
             phrase=chunk.get_phrase()
             if sentence[chunk.dst].is_verb():
-                phrase+=sentence[chunk.dst].get_base_of_most_left_verb()
+                phrase+=sentence[chunk.dst].get_base_of_verb()
                 pairs_list=[]
                 for num in sentence[chunk.dst].srcs:
+                    if i == num:continue
                     particle=sentence[num].get_particle()
                     if particle != '':
                         pairs=[particle,sentence[num].get_phrase()]
@@ -145,3 +145,8 @@ with open('ans47.txt','w') as f:
     f.write(s)
 
 print(s)
+
+'''
+[プログラムの結果](長いので一部省略)
+ans47.txtファイルに結果を保存
+'''

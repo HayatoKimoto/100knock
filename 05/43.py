@@ -38,7 +38,7 @@ class Chunk:
 
         return False
 
-    def is_noon(self):
+    def is_noun(self):
         for x in self.morphs:
             if x.pos =='名詞':return True
 
@@ -75,13 +75,13 @@ def get_chunk_list(filename):
 
         return sentence
 
-def print_pair_phrase(sentence):
+def show_pair_phrase(sentence):
     for chunk in sentence:
         if chunk.dst == -1 :continue
 
         pair_phrase=chunk.get_phrase()
 
-        if pair_phrase != '' and chunk.is_noon() and sentence[chunk.dst].is_verb():
+        if pair_phrase != '' and chunk.is_noun() and sentence[chunk.dst].is_verb():
             pair_phrase+=('\t')+sentence[chunk.dst].get_phrase()
             #pair_phrase_list.append(pair_phrase)
             print(pair_phrase)
@@ -92,4 +92,17 @@ fname='ai.ja.txt.parsed'
 article=get_chunk_list(fname)
 
 for s in article:
-    print_pair_phrase(s)
+    show_pair_phrase(s)
+
+'''
+[プログラムの結果](長いので一部省略)
+道具を	用いて
+知能を	研究する
+一分野を	指す
+知的行動を	代わって
+人間に	代わって
+コンピューターに	行わせる
+研究分野とも	される
+解説で	述べている
+
+'''
