@@ -19,11 +19,11 @@ with open('ai.ja.txt.parsed') as f:
             continue
         elif line.split('\t')[0] == 'EOS':
             morphs_line_list.append(morphs)
-            morphs=[]
+            morphs = []
         else:
 
-            words=line.split('\t')[1].split(',')
-            morpheme=Morph(line.split('\t')[0],words[6],words[0],words[1])
+            words = line.split('\t')[1].split(',')
+            morpheme = Morph(line.split('\t')[0],words[6],words[0],words[1])
             morphs.append(morpheme)
             
 
