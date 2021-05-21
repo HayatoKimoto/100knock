@@ -27,11 +27,13 @@ for category in test_df:
 y_val = []
 for category in val_df:
     y_val.append(cate2num[category])
-    
+
 #学習アルゴリズム
 solver = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
 #学習パラメータ
 C = np.logspace(-10, 10, 21)
+
+#学習アルゴリズムとパラメータの組み合わせで正解率がもっとも高い組み合わせを探す
 max_score = 0
 for c in C:
   for s in solver:
@@ -47,7 +49,14 @@ for c in C:
         max_score = val_acc
         best_params = {"solver":s ,"C":c}
 
+
 print(best_params)
 y_test_pred   = best_clf.predict(x_test)
 test_acc = accuracy_score(y_test,y_test_pred)
 print(test_acc)
+
+"""
+[プログラムの結果]
+{'solver': 'liblinear', 'C': 1000.0}
+0.8980509745127436
+"""
