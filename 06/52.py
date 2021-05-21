@@ -1,11 +1,19 @@
 import pandas as pd
-import joblib
+import pickle
 from sklearn.linear_model import LogisticRegression
-from tqdm import tqdm
 
-x_train = pd.read_table('ans50/train.feature.tsv', header=None)
-y_train = pd.read_table('ans50/train.tsv', header=None)[1]
+x_train = pd.read_pickle('ans50/train.feature.pkl')
+train_df = pd.read_table('ans50/train.tsv',header = None)[0]
 
-clf = LogisticRegression(penalty='l2', solver='sag', random_state=0)
+cate2num = {"b": 0, "t": 1, "e": 2, "m": 3}
+
+#文字を数値に対応
+y_train = []
+for category in train_df:
+    y_train.append(cate2num[category])
+
+clf = LogisticRegression(solver='sag',random_state=0)
 clf.fit(x_train, y_train)
-joblib.dump(clf, 'ans50/model.joblib')
+
+#学習モデルを保存
+pickle.dump(clf,open("model.pkl","wb"))
