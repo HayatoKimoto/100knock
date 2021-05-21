@@ -1,3 +1,4 @@
+#p51 コードを段落に分ける
 import pandas as pd
 import zipfile
 from sklearn.model_selection import train_test_split
@@ -33,6 +34,9 @@ test.to_csv('ans50/test.tsv', columns = ['CATEGORY','TITLE'], sep='\t',header=Fa
 print("学習データ")
 print(train['CATEGORY'].value_counts())
 
+print("検証データ")
+print(val['CATEGORY'].value_counts())
+
 print("評価データ")
 print(test['CATEGORY'].value_counts())
 
@@ -40,16 +44,23 @@ print(test['CATEGORY'].value_counts())
 
 """
 [プログラムの結果]
+%python 50.p
 学習データ
-b    4476
-e    4264
-t    1214
-m     718
+b    4462
+e    4242
+t    1242
+m     726
+Name: CATEGORY, dtype: int64
+検証データ
+b    571
+e    525
+t    146
+m     92
 Name: CATEGORY, dtype: int64
 評価データ
-b    575
-e    507
-t    159
-m     93
+b    594
+e    512
+t    136
+m     92
 Name: CATEGORY, dtype: int64
 """
