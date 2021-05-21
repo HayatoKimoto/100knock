@@ -16,6 +16,7 @@ train_df = pd.read_table('ans50/train.tsv',header = None)[0]
 test_df  = pd.read_table('ans50/test.tsv',header = None)[0]
 val_df  = pd.read_table('ans50/valid.tsv',header = None)[0]
 
+#正解ラベルの生成
 y_train = []
 cate2num = {"b": 0, "t": 1, "e": 2, "m": 3}
 for category in train_df:
@@ -45,12 +46,14 @@ for c in tqdm(C):
   result.append([c, train_acc, val_acc, test_acc])
 result = np.array(result).T
 
+#グラフの生成
+fig=plt.figure()
 plt.plot(result[0], result[1], label='train')
 plt.plot(result[0], result[2], label='val')
 plt.plot(result[0], result[3], label='test')
-#plt.ylim(0.5, 1.1)
 plt.ylabel('Accuracy')
 plt.xscale('log')
 plt.xlabel('C')
 plt.legend()
+fig.savefig("58.png")
 plt.show()
