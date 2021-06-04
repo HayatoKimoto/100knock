@@ -14,13 +14,14 @@ class Net(nn.Module):
         x = F.softmax(x,dim=1)
         return x
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 X_train = np.loadtxt('X_train.txt')
-Y_train = np.loadtxt('y_train.txt')
-X_train = torch.tensor(X_train, dtype = torch.float32)
-Y_train = torch.tensor(Y_train, dtype = torch.int64)
+Y_train = np.loadtxt('Y_train.txt')
+X_train = torch.tensor(X_train, dtype = torch.float32).to(device)
+Y_train = torch.tensor(Y_train, dtype = torch.int64).to(device)
 loss_fn = nn.CrossEntropyLoss()
 
-net = Net()
+net = Net().to(device)
 y_1 =net(X_train[:1])
 Y = net(X_train[:4])
 
@@ -29,8 +30,9 @@ print(loss_fn(Y,Y_train[:4]))
 
 """
 [プログラムの結果]
-tensor(1.3960, grad_fn=<NllLossBackward>)
-tensor(1.3943, grad_fn=<NllLossBackward>)
+%python 72.py
+tensor(1.3981, device='cuda:0', grad_fn=<NllLossBackward>)
+tensor(1.4020, device='cuda:0', grad_fn=<NllLossBackward>)
 """
 
 

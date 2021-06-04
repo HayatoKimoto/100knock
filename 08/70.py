@@ -11,11 +11,11 @@ model = pickle.load(open("kv.pkl","rb"))
 
 d = {'b':0, 't':1, 'e':2, 'm':3}
 y_train = train_df.iloc[:,0].replace(d)
-y_train.to_csv('y_train.txt',header=False, index=False)
+y_train.to_csv('Y_train.txt',header=False, index=False)
 y_valid = val_df.iloc[:,0].replace(d)
-y_valid.to_csv('y_valid.txt',header=False, index=False)
+y_valid.to_csv('Y_valid.txt',header=False, index=False)
 y_test  = test_df.iloc[:,0].replace(d)
-y_test.to_csv('y_test.txt',header=False, index=False)
+y_test.to_csv('Y_test.txt',header=False, index=False)
 
 def write_X(file_name, df):
     with open(file_name,'w') as f:
@@ -38,7 +38,3 @@ write_X('X_train.txt',train_df)
 write_X('X_valid.txt',val_df)
 write_X('X_test.txt',test_df)
 
-"""
-[プログラムの結果]
-
-"""
