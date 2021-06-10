@@ -21,7 +21,7 @@ def accuracy(pred, label):
   return (pred == label).mean()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device2 = torch.device('cpu')
+
 
 X_test = np.loadtxt('X_test.txt')
 Y_test = np.loadtxt('Y_test.txt')
@@ -33,13 +33,14 @@ Y_train = np.loadtxt('Y_train.txt')
 X_train = torch.tensor(X_train, dtype = torch.float32).to(device)
 Y_train = torch.tensor(Y_train, dtype = torch.int64)
 
-model = torch.load('model.pth')
+model = Net().to(device)
+model.load_state_dict(torch.load("model.pth"))
 
-train_pred = model(X_train).to(device)
-test_pred = model(X_test).to(device)
+train_pred = model(X_train)
+test_pred = model(X_test)
 
-train_pred = train_pred.to(device2)
-test_pred = test_pred.to(device2)
+train_pred = train_pred.cpu()
+test_pred = test_pred.cpu()
 
 
 print('学習データ:',accuracy(train_pred,Y_train))
@@ -47,6 +48,6 @@ print('評価データ:',accuracy(test_pred,Y_test))
 
 """
 [プログラムの結果]
-学習データ: 0.89523988005997
-評価データ: 0.8913043478260869
+学習データ: 0.8958958020989505
+評価データ: 0.8958020989505248
 """

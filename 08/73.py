@@ -37,3 +37,4 @@ for epoch in range(10):
         loss.backward()
         optimizer.step()
 
+torch.save(net.state_dict(), 'model.pth')

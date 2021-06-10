@@ -18,13 +18,12 @@ class Net(nn.Module):
         return x
 
 def accuracy(pred, label):
-  pred = np.argmax(pred.data.numpy(), axis=1)
-  label = label.data.numpy()
-  return (pred == label).mean()
+    pred = np.argmax(pred.data.numpy(), axis=1)
+    label = label.data.numpy()
+    return (pred == label).mean()
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device2 = torch.device('cpu')
 
 X_train = np.loadtxt('X_train.txt')
 Y_train = np.loadtxt('Y_train.txt')
@@ -62,25 +61,25 @@ for epoch in tqdm(range(10)):
         optimizer.step()
 
     with torch.no_grad():
-        y_pred = net(X_train)
-        loss = loss_fn(y_pred,Y_train)
-        y_pred = y_pred.to(device2)
-        y_train = Y_train.to(device2)
-        score=accuracy(y_pred,y_train)
+        Y_pred = net(X_train)
+        loss = loss_fn(Y_pred,Y_train)
+        Y_pred = Y_pred.cpu()
+        Y_train = Y_train.cpu()
+        score = accuracy(Y_pred,Y_train)
 
-        loss_value = loss.to(device2)
+        loss_value = loss.cpu()
         train_acc_list.append(score)
         train_loss_list.append(loss_value)
-        
 
-        y_pred = net(X_valid)
+
+        Y_pred = net(X_valid)
         Y_valid = Y_valid.to(device)
-        loss = loss_fn(y_pred,Y_valid)
-        y_pred = y_pred.to(device2)
-        y_valid = Y_valid.to(device2)
-        score = accuracy(y_pred,y_valid)
+        loss = loss_fn(Y_pred,Y_valid)
+        Y_pred = Y_pred.cpu()
+        Y_valid = Y_valid.cpu()
+        score = accuracy(Y_pred,Y_valid)
 
-        loss_value = loss.to(device2)
+        loss_value = loss.cpu()
         valid_acc_list.append(score)
         valid_loss_list.append(loss_value)
 
@@ -100,4 +99,3 @@ ax[0].legend()
 ax[1].legend()
 fig.savefig('75.png')
     
-torch.save(net, 'model.pth')

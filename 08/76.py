@@ -18,9 +18,9 @@ class Net(nn.Module):
         return x
 
 def accuracy(pred, label):
-  pred = np.argmax(pred.data.numpy(), axis=1)
-  label = label.data.numpy()
-  return (pred == label).mean()
+    pred = np.argmax(pred.data.numpy(), axis=1)
+    label = label.data.numpy()
+    return (pred == label).mean()
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
