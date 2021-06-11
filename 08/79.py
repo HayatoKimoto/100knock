@@ -56,11 +56,11 @@ ds = TensorDataset(X_train, Y_train)
 loss_fn = nn.CrossEntropyLoss()
 # DataLoaderを作成
 
-loader = DataLoader(ds, batch_size=1, shuffle=True)
+loader = DataLoader(ds, batch_size=32, shuffle=True)
 optimizer = optim.SGD(net.parameters(), lr=1e-1)
 
 
-for epoch in tqdm(range(10)):
+for epoch in tqdm(range(100)):
     for xx, yy in loader:
         xx = xx.to(device)
         yy = yy.to(device)
@@ -125,6 +125,6 @@ print('評価データ:',accuracy(valid_pred,Y_valid))
 """
 [プログラムの結果]
 %python 79.py
-学習データ: 0.8779047976011994
-評価データ: 0.8643178410794603
+学習データ: 0.8727511244377811
+評価データ: 0.8575712143928036
 """
