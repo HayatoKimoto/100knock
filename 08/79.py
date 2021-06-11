@@ -60,7 +60,7 @@ loader = DataLoader(ds, batch_size=32, shuffle=True)
 optimizer = optim.SGD(net.parameters(), lr=1e-1)
 
 
-for epoch in tqdm(range(100)):
+for epoch in tqdm(range(500)):
     for xx, yy in loader:
         xx = xx.to(device)
         yy = yy.to(device)
