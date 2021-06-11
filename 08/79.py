@@ -60,7 +60,7 @@ loader = DataLoader(ds, batch_size=32, shuffle=True)
 optimizer = optim.SGD(net.parameters(), lr=1e-1)
 
 
-for epoch in tqdm(range(500)):
+for epoch in tqdm(range(150)):
     for xx, yy in loader:
         xx = xx.to(device)
         yy = yy.to(device)
@@ -125,6 +125,6 @@ print('評価データ:',accuracy(valid_pred,Y_valid))
 """
 [プログラムの結果]
 %python 79.py
-学習データ: 0.8727511244377811
-評価データ: 0.8575712143928036
+学習データ: 0.9525862068965517
+評価データ: 0.889055472263868
 """
