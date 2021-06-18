@@ -60,7 +60,9 @@ def list2tensor(data,padding_id):
 
   return pad_sequence(new,padding_value=padding,batch_first=True)
 
-device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+
+
+device = torch.device('cuda:2' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 train_df = pd.read_table('ans50/train.tsv', header=None)
@@ -105,7 +107,7 @@ ds = TensorDataset(X_train.to(device), Y_train.to(device))
 loader = DataLoader(ds, batch_size= 1024, shuffle=True)
 
 loss_fn = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=1e-2)
+optimizer = optim.SGD(model.parameters(), lr=1e-3)
 
 fig = plt.figure()
 ax= fig.subplots(2)
