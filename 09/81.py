@@ -5,6 +5,7 @@ import re
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.utils.rnn import pad_sequence
 
 class RNN(nn.Module):
     def __init__(self,vocab_size,emb_size,padding_idx,output_size,hidden_size):
@@ -17,7 +18,7 @@ class RNN(nn.Module):
     def forward(self,x,h=None):
         x = self.emb(x)
         y,h = self.rnn(x,h)
-        y = y[:,-1,:] # 最後のステップ
+        y=y[:,-1,:]
         y = self.fc(y)
         y = F.softmax(y,dim=1)
         return y
@@ -42,46 +43,43 @@ def df2id(df):
     ids.append(get_id(s.split()))
   return ids
 
-def list2tensor(data, max_len):
+def list2tensor(data,padding_id):
   new = []
-  for d in data:
-    if len(d) > max_len:
-      d = d[:max_len]
-    else:
-      d += [len(d)+1] * (max_len - len(d))
-    new.append(d)
-  return torch.tensor(new, dtype=torch.int64)
+  for s in data:
+    new.append(torch.tensor(s))
+
+  return pad_sequence(new,padding_value=padding,batch_first=True)
 
 #データの呼び出し
 train_df = pd.read_table('ans50/train.tsv', header=None)
 val_df   = pd.read_table('ans50/valid.tsv', header=None)
 test_df  = pd.read_table('ans50/test.tsv', header=None)
 
+#ID番号への変換
 vectorizer = CountVectorizer(min_df=2)
-#大文字の単語を小文字にして抽出
 train_title = train_df.iloc[:,1].str.lower()
 cnt = vectorizer.fit_transform(train_title).toarray()
 sm = cnt.sum(axis=0)
-#print(sm)
 idx = np.argsort(sm)[::-1]
 words = np.array(vectorizer.get_feature_names())[idx]
 d = dict()
 for i in range(len(words)):
   d[words[i]] = i+1
 
+
 X_train=df2id(train_df)
 X_valid=df2id(val_df)
 X_test=df2id(test_df)
 
-V=len(d)+2
-padding=len(d)+1
+V=len(d)+1
+padding=len(d)
 dw = 300
 dh = 50
 output_size =4
 
 
 model=RNN(V,dw,padding,4,dh)
-X_train = list2tensor(X_train,10)
-y_pred = model(X_train)
+X_test = list2tensor(X_test,padding)
+y_pred = model(X_test)
 
 print(y_pred)

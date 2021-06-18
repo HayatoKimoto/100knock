@@ -11,6 +11,7 @@ import gensim
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from matplotlib import pyplot as plt
+from torch.nn.utils.rnn import pad_sequence
 
 def remove_mark(sentence):
     specialChars = "!?#$%^&*().\"'" 
@@ -19,7 +20,6 @@ def remove_mark(sentence):
         sentence = sentence.replace(specialChar, '')
     return sentence
     
-
 def get_id(sentence):
   r = []
   for word in sentence:
@@ -38,18 +38,15 @@ def accuracy(pred, label):
   label = label.data.numpy()
   return (pred == label).mean()
 
-def list2tensor(data, max_len):
+def list2tensor(data,padding_id):
   new = []
-  for d in data:
-    if len(d) > max_len:
-      d = d[:max_len]
-    else:
-      d += [len(d)+1] * (max_len - len(d))
-    new.append(d)
-  return torch.tensor(new, dtype=torch.int64)
+  for s in data:
+    new.append(torch.tensor(s))
+
+  return pad_sequence(new,padding_value=padding,batch_first=True)
 
 wv_model = gensim.models.KeyedVectors.load_word2vec_format('ans50/GoogleNews-vectors-negative300.bin', binary=True)
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 train_df = pd.read_table('ans50/train.tsv', header=None)
@@ -62,12 +59,20 @@ vectorizer = CountVectorizer(min_df=2)
 train_title = train_df.iloc[:,1].str.lower()
 cnt = vectorizer.fit_transform(train_title).toarray()
 sm = cnt.sum(axis=0)
-#print(sm)
 idx = np.argsort(sm)[::-1]
 words = np.array(vectorizer.get_feature_names())[idx]
 d = dict()
 for i in range(len(words)):
   d[words[i]] = i+1
+
+
+for word in d.keys():
+  if word in wv_model:
+    d[word] = wv_model.key_to_index[word]
+  else:
+    d[word] = 0
+
+
 
 X_train=df2id(train_df)
 X_valid=df2id(val_df)
@@ -75,8 +80,8 @@ X_test=df2id(test_df)
 Y_train = np.loadtxt('ans50/Y_train.txt')
 Y_valid = np.loadtxt('ans50/Y_valid.txt')
 
-V=len(d)+2
-padding=len(d)+1
+V=len(d)+1
+padding=len(d)
 dw = 300
 dh = 50
 output_size =4
@@ -90,35 +95,30 @@ class RNN(nn.Module):
         emb_dim = weights.shape[1]
         
         self.hidden_size = hidden_size
-        self.emb = nn.Embedding(vocab_size,emb_size,padding_idx=padding_idx)
+        self.emb = nn.Embedding(vocab_size,emb_dim,padding_idx=padding_idx)
         self.emb.weight = nn.Parameter(torch.from_numpy(weights))
-        self.emb.weight.requires_grad = False
+        self.emb.weight.requires_grad=False
         self.rnn = nn.RNN(emb_size,hidden_size,batch_first =True)
         self.fc = torch.nn.Linear(hidden_size,output_size)
 
     def forward(self,x,h=None):
-        self.batch_size = x.size()[0]
-        hidden = self.init_hidden() 
         x = self.emb(x)
         y, h = self.rnn(x, h)
-        y = y[:,-1,:] # 最後のステップ
+        y=y[:,-1,:]
         y = self.fc(y)
         #y = F.softmax(y,dim=1)
         return y
     
-    def init_hidden(self):
-        hidden = torch.zeros(1, self.batch_size, self.hidden_size)
-        return hidden
 
 model=RNN(V,dw,padding,output_size,dh).to(device)
 
-X_train = list2tensor(X_train,10)
+X_train = list2tensor(X_train,padding)
 Y_train = torch.tensor(Y_train, dtype = torch.int64)
 
-X_valid = list2tensor(X_valid,10).to(device)
+X_valid = list2tensor(X_valid,padding)
 Y_valid = torch.tensor(Y_valid, dtype = torch.int64)
 
-ds = TensorDataset(X_train.to(device), Y_train.to(device))
+ds = TensorDataset(X_train, Y_train)
 loader = DataLoader(ds, batch_size= 1, shuffle=True)
 
 loss_fn = nn.CrossEntropyLoss()
@@ -134,12 +134,15 @@ valid_loss_list = []
 
 for epoch in tqdm(range(10)):
     for xx, yy in loader:
-        y_pred = model(xx)
-        loss = loss_fn(y_pred, yy)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-    
+      xx=xx.to(device)
+      yy=yy.to(device)
+      y_pred = model(xx)
+      
+      loss = loss_fn(y_pred, yy)
+      optimizer.zero_grad()
+      loss.backward()
+      optimizer.step()
+  
     with torch.no_grad():
         Y_pred = model(X_train.to(device))
         loss = loss_fn(Y_pred,Y_train.to(device))
@@ -151,7 +154,6 @@ for epoch in tqdm(range(10)):
         loss_value = loss.cpu()
         train_acc_list.append(score)
         train_loss_list.append(loss_value)
-
 
         Y_pred = model(X_valid.to(device))
         Y_valid = Y_valid.to(device)

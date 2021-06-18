@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from matplotlib import pyplot as plt
+from torch.nn.utils.rnn import pad_sequence
 
 def remove_mark(sentence):
     specialChars = "!?#$%^&*().\"'" 
@@ -18,7 +19,6 @@ def remove_mark(sentence):
         sentence = sentence.replace(specialChar, '')
     return sentence
     
-
 def get_id(sentence):
   r = []
   for word in sentence:
@@ -37,17 +37,14 @@ def accuracy(pred, label):
   label = label.data.numpy()
   return (pred == label).mean()
 
-def list2tensor(data, max_len):
+def list2tensor(data,padding_id):
   new = []
-  for d in data:
-    if len(d) > max_len:
-      d = d[:max_len]
-    else:
-      d += [len(d)+1] * (max_len - len(d))
-    new.append(d)
-  return torch.tensor(new, dtype=torch.int64)
+  for s in data:
+    new.append(torch.tensor(s))
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+  return pad_sequence(new,padding_value=padding,batch_first=True)
+
+device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 train_df = pd.read_table('ans50/train.tsv', header=None)
@@ -73,44 +70,34 @@ X_test=df2id(test_df)
 Y_train = np.loadtxt('ans50/Y_train.txt')
 Y_valid = np.loadtxt('ans50/Y_valid.txt')
 
-V=len(d)+2
-padding=len(d)+1
+V=len(d)+1
+padding=len(d)
 dw = 300
 dh = 50
 output_size =4
 
 class RNN(nn.Module):
-    def __init__(self,vocab_size,emb_size,padding_idx,output_size,hidden_size):
+    def __init__(self,vocab_size,emb_size,padding_idx,output_size,hidden_size,n_layer):
         super(RNN,self).__init__()
-        self.hidden_size = hidden_size
         self.emb = nn.Embedding(vocab_size,emb_size,padding_idx=padding_idx)
-        self.rnn1 = nn.RNN(emb_size,hidden_size,bidirectional=True,batch_first =True)
-        self.rnn2 = nn.RNN(2*hidden_size,hidden_size,bidirectional=True,batch_first =True)
-        self.rnn3 = nn.RNN(2*hidden_size,hidden_size,bidirectional=True,batch_first =True)
+        self.rnn= nn.RNN(emb_size,hidden_size,bidirectional=True,batch_first =True,num_layers=n_layer)
         self.fc = torch.nn.Linear(2*hidden_size,output_size)
 
     def forward(self,x,h=None):
-        self.batch_size = x.size()[0]
-        hidden = self.init_hidden() 
         x = self.emb(x)
-        y, h = self.rnn1(x, h)
-        y, h = self.rnn2(y, h)
-        y, h = self.rnn3(y, h)
-        y = y[:,-1,:] # 最後のステップ
-        y = self.fc(y)
+        y, h = self.rnn(x, h)
+        h = torch.cat([h[-1],h[-2]],dim=1)
+        y = self.fc(h)
         #y = F.softmax(y,dim=1)
         return y
-    
-    def init_hidden(self):
-        hidden = torch.zeros(1, self.batch_size, self.hidden_size)
-        return hidden
+
 
 model=RNN(V,dw,padding,output_size,dh).to(device)
 
-X_train = list2tensor(X_train,10)
+X_train = list2tensor(X_train,padding)
 Y_train = torch.tensor(Y_train, dtype = torch.int64)
 
-X_valid = list2tensor(X_valid,10).to(device)
+X_valid = list2tensor(X_valid,padding).to(device)
 Y_valid = torch.tensor(Y_valid, dtype = torch.int64)
 
 ds = TensorDataset(X_train.to(device), Y_train.to(device))

@@ -41,7 +41,7 @@ d = dict()
 
 for i in range(len(words)):
   d[words[i]] = i+1
-  if i<10:print(words[i])
+  
 
 print(df2id(train_df)[0])
 

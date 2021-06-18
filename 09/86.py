@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from matplotlib import pyplot as plt
+from torch.nn.utils.rnn import pad_sequence
 
 def remove_mark(sentence):
     specialChars = "!?#$%^&*().\"'" 
@@ -37,15 +38,12 @@ def accuracy(pred, label):
   label = label.data.numpy()
   return (pred == label).mean()
 
-def list2tensor(data, max_len):
+def list2tensor(data,padding_id):
   new = []
-  for d in data:
-    if len(d) > max_len:
-      d = d[:max_len]
-    else:
-      d += [len(d)+1] * (max_len - len(d))
-    new.append(d)
-  return torch.tensor(new, dtype=torch.int64)
+  for s in data:
+    new.append(torch.tensor(s))
+
+  return pad_sequence(new,padding_value=padding,batch_first=True)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
@@ -130,10 +128,10 @@ class CNN(torch.nn.Module):
 
 model=CNN(V,dw,padding,output_size,dh).to(device)
 
-X_train = list2tensor(X_train,10)
+X_train = list2tensor(X_train,padding)
 Y_train = torch.tensor(Y_train, dtype = torch.int64)
 
-X_valid = list2tensor(X_valid,10).to(device)
+X_valid = list2tensor(X_valid,padding).to(device)
 Y_valid = torch.tensor(Y_valid, dtype = torch.int64)
 
 ds = TensorDataset(X_train.to(device), Y_train.to(device))

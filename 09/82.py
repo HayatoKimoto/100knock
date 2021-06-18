@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from matplotlib import pyplot as plt
+from torch.nn.utils.rnn import pad_sequence
 
 class RNN(nn.Module):
     def __init__(self,vocab_size,emb_size,padding_idx,output_size,hidden_size):
@@ -17,19 +18,18 @@ class RNN(nn.Module):
         self.hidden_size = hidden_size
         self.emb = nn.Embedding(vocab_size,emb_size,padding_idx=padding_idx)
         self.rnn = nn.RNN(emb_size,hidden_size,batch_first =True)
-        self.fc = torch.nn.Linear(hidden_size,output_size)
+        self.fc = nn.Linear(hidden_size,output_size)
 
     def forward(self,x,h=None):
         x = self.emb(x)
         y,h = self.rnn(x,h)
-        y = y[:,-1,:] # 最後のステップ
+        y=y[:,-1,:]
         y = self.fc(y)
         #y = F.softmax(y,dim=1)
         return y
 
 def remove_mark(sentence):
     specialChars = "!?#$%^&*().\"'" 
-    sentence = sentence.replace('.','')
     for specialChar in specialChars:
         sentence = sentence.replace(specialChar, '')
     return sentence
@@ -52,18 +52,15 @@ def accuracy(pred, label):
   label = label.data.numpy()
   return (pred == label).mean()
 
-def list2tensor(data, max_len):
+def list2tensor(data,padding_id):
   new = []
-  for d in data:
-    if len(d) > max_len:
-      d = d[:max_len]
-    else:
-      d += [len(d)+1] * (max_len - len(d))
-    new.append(d)
-  return torch.tensor(new, dtype=torch.int64)
+  for s in data:
+    new.append(torch.tensor(s))
+
+  return pad_sequence(new,padding_value=padding,batch_first=True)
 
 #GPUが使用可能か
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 #データの呼び出し
@@ -89,18 +86,18 @@ X_test=df2id(test_df)
 Y_train = np.loadtxt('ans50/Y_train.txt')
 Y_valid = np.loadtxt('ans50/Y_valid.txt')
 
-V=len(d)+2
-padding=len(d)+1
+V=len(d)+1
+padding=len(d)
 dw = 300
 dh = 50
 output_size =4
 
 model=RNN(V,dw,padding,output_size,dh).to(device)
 
-X_train = list2tensor(X_train,10)
+X_train = list2tensor(X_train,padding)
 Y_train = torch.tensor(Y_train, dtype = torch.int64)
 
-X_valid = list2tensor(X_valid,10).to(device)
+X_valid = list2tensor(X_valid,padding).to(device)
 Y_valid = torch.tensor(Y_valid, dtype = torch.int64)
 
 ds = TensorDataset(X_train.to(device), Y_train.to(device))
