@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 import re
-import gensim
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -29,25 +28,19 @@ class MyDataset(Dataset):
         return packed_data, label
 
 class RNN(nn.Module):
-    def __init__(self,vocab_size,emb_size,output_size,hidden_size):
+    def __init__(self,vocab_size,emb_size,output_size,hidden_size,n_layer):
         super(RNN,self).__init__()
-
-        weights = wv_model.vectors
-        vocab_size = weights.shape[0]
-        emb_size = weights.shape[1]
         self.emb = nn.Embedding(vocab_size,emb_size)
-        self.emb.weight = nn.Parameter(torch.from_numpy(weights))
-        self.emb.weight.requires_grad=False
-        self.rnn = nn.RNN(emb_size,hidden_size,batch_first =True)
-        self.fc = nn.Linear(hidden_size,output_size,bias=True)
+        self.rnn = nn.LSTM(emb_size,hidden_size,bidirectional=True,batch_first =True,num_layers=n_layer)
+        self.fc = nn.Linear(2*hidden_size,output_size,bias=True)
 
     def forward(self,padded_packed_input):
         x ,len_list = padded_packed_input
         x = self.emb(x)
         x = pack_padded_sequence(x, len_list, batch_first=True, enforce_sorted=False)
-        x,h = self.rnn(x)
+        x,(h,c) = self.rnn(x)
+        h = torch.cat([h[-1],h[-2]],dim=1)
         y = self.fc(h)
-        y = y.squeeze(0)
         # = F.softmax(y,dim=1)
         return y
 
@@ -65,7 +58,6 @@ def accuracy(pred, label):
   label = label.data.numpy()
   return (pred == label).mean()
 
-wv_model = gensim.models.KeyedVectors.load_word2vec_format('ans50/GoogleNews-vectors-negative300.bin', binary=True)
 
 device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 print(device)
@@ -78,13 +70,14 @@ Y_train = np.loadtxt('ans50/Y_train.txt')
 Y_valid = np.loadtxt('ans50/Y_valid.txt')
 
 #パラメータの設定
-V=get_len()+1
-dw = 300
-dh = 50
-output_size =4
+V=get_len() + 1
+dw = 300 #emb_size
+dh = 50  #hidden_size
+output_size = 4
+n_layer=1
 
 
-model=RNN(V,dw,4,dh).to(device)
+model=RNN(V,dw,4,dh,n_layer).to(device)
 X_train = list2tensor(X_train)
 Y_train = torch.tensor(Y_train, dtype = torch.int64)
 
@@ -93,10 +86,10 @@ Y_valid = torch.tensor(Y_valid, dtype = torch.int64)
 
 
 dataset = MyDataset(X_train, Y_train)
-loader = DataLoader(dataset, batch_size=256, shuffle=True)
+loader = DataLoader(dataset, batch_size=80, shuffle=True)
 
 loss_fn = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=1e-3)
+optimizer = optim.SGD(model.parameters(), lr=0.006648128547397791,)
 
 fig = plt.figure()
 ax= fig.subplots(2)
@@ -108,7 +101,8 @@ valid_loss_list = []
 train_data=(X_train[0].to(device),X_train[1].to(device))
 valid_data=(X_valid[0].to(device),X_valid[1].to(device))
 
-for epoch in tqdm(range(1000)):
+
+for epoch in tqdm(range(500)):
   model.train()
   for xx, yy in loader:
     xx=(xx[0].to(device),xx[1].to(device))
@@ -158,4 +152,4 @@ ax[1].set_ylabel('accuracy')
 
 ax[0].legend()
 ax[1].legend()
-fig.savefig('84.png')
+fig.savefig('88.png')

@@ -1,198 +1,99 @@
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
-from torch.utils.data import TensorDataset, DataLoader
 import re
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F
-from tqdm import tqdm
-from torch.utils.tensorboard import SummaryWriter
+from torch.utils.data import Dataset, DataLoader
+import torch.optim as optim
+from torch.nn.utils.rnn import pack_sequence, pad_packed_sequence, pack_padded_sequence
 from matplotlib import pyplot as plt
-from torch.nn.utils.rnn import pad_sequence
+from tqdm import tqdm
+from word2id import get_id
+from word2id import get_len
 
-def remove_mark(sentence):
-    specialChars = "!?#$%^&*().\"'" 
-    sentence = sentence.replace('.','')
-    for specialChar in specialChars:
-        sentence = sentence.replace(specialChar, '')
-    return sentence
-    
+class MyDataset(Dataset):
+  def __init__(self, padded_packed_data, target):
+    self.padded_data, self.len_list = padded_packed_data
+    self.target = target
+    self.len = len(target)
+  
+  def __len__(self):
+    return self.len
+  
+  def __getitem__(self, index):
+    packed_data = (self.padded_data[index], self.len_list[index])
+    label = self.target[index]
+    return packed_data, label
 
-def get_id(sentence):
-  r = []
-  for word in sentence:
-    r.append(d.get(word,0))
-  return r
+class CNN(nn.Module):
+  def __init__(self,vocab_size,emb_size,output_size,hidden_size,filter_size):
+    super(CNN,self).__init__()
 
-def df2id(df):
-  ids = []
-  for s in df.iloc[:,1].str.lower():
-    s=remove_mark(s)
-    ids.append(get_id(s.split()))
-  return ids
+    self.emb =nn.Embedding(vocab_size,emb_size)
+    # kernel_sizeが(3, emb_size)なのでパッディングを(1, 0)にして畳み込み後のサイズが変わらないようにする
+    self.conv1 = nn.Conv2d(in_channels=1, out_channels=hidden_size,kernel_size=(filter_size, emb_size),stride=1,padding=(1,0))
+    self.relu = nn.ReLU()
+    self.linear = nn.Linear(hidden_size,output_size,bias=True)
+      
+
+  def forward(self,padded_packed_input):
+    x ,len_list = padded_packed_input
+    x = self.emb(x).unsqueeze(1)
+    x = self.conv1(x)
+    x=x.squeeze(-1)
+    x = self.relu(x)
+    x = F.max_pool1d(x,x.size(2))
+    x = x.squeeze(2)
+    y = self.linear(x)
+    y = F.softmax(y,dim=1)
+    return y
+
+def list2tensor(data):
+  new = []
+  for s in data:
+    new.append(torch.tensor(s))
+  
+  packed_inputs= pack_sequence(new,enforce_sorted=False)
+  padded_packed_inputs = pad_packed_sequence(packed_inputs, batch_first=True)
+  return padded_packed_inputs
 
 def accuracy(pred, label):
   pred = np.argmax(pred.data.numpy(), axis=1)
   label = label.data.numpy()
   return (pred == label).mean()
 
-def list2tensor(data,padding_id):
-  new = []
-  for s in data:
-    new.append(torch.tensor(s))
 
-  return pad_sequence(new,padding_value=padding,batch_first=True)
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(device)
 
-train_df = pd.read_table('ans50/train.tsv', header=None)
-val_df   = pd.read_table('ans50/valid.tsv', header=None)
-test_df  = pd.read_table('ans50/test.tsv', header=None)
 
-
-vectorizer = CountVectorizer(min_df=2)
-#大文字の単語を小文字にして抽出
-train_title = train_df.iloc[:,1].str.lower()
-cnt = vectorizer.fit_transform(train_title).toarray()
-sm = cnt.sum(axis=0)
-#print(sm)
-idx = np.argsort(sm)[::-1]
-words = np.array(vectorizer.get_feature_names())[idx]
-d = dict()
-for i in range(len(words)):
-  d[words[i]] = i+1
-
-X_train=df2id(train_df)
-X_valid=df2id(val_df)
-X_test=df2id(test_df)
+#データの読み込み
+X_train = get_id('ans50/train.tsv')
+X_valid = get_id('ans50/valid.tsv')
+X_test  = get_id('ans50/test.tsv')
 Y_train = np.loadtxt('ans50/Y_train.txt')
 Y_valid = np.loadtxt('ans50/Y_valid.txt')
 
-V=len(d)+2
-padding=len(d)+1
+#パラメータの設定
+V=get_len()+1
 dw = 300
 dh = 50
 output_size =4
+filter_size=3
 
-class RNN(nn.Module):
-    def __init__(self,vocab_size,emb_size,padding_idx,output_size,hidden_size):
-        super(RNN,self).__init__()
-        self.hidden_size = hidden_size
-        self.emb = nn.Embedding(vocab_size,emb_size,padding_idx=padding_idx)
-        self.rnn1 = nn.RNN(emb_size,hidden_size,bidirectional=True,batch_first =True)
-        self.rnn2 = nn.RNN(2*hidden_size,hidden_size,bidirectional=True,batch_first =True)
-        self.rnn3 = nn.RNN(2*hidden_size,hidden_size,bidirectional=True,batch_first =True)
-        self.fc = torch.nn.Linear(2*hidden_size,output_size)
+model=CNN(V,dw,output_size,dh,filter_size)
+X_test= list2tensor(X_test)
+y_pred = model(X_test)
 
-    def forward(self,x,h=None):
-        self.batch_size = x.size()[0]
-        hidden = self.init_hidden() 
-        x = self.emb(x)
-        y, h = self.rnn1(x, h)
-        y, h = self.rnn2(y, h)
-        y, h = self.rnn3(y, h)
-        y = y[:,-1,:] # 最後のステップ
-        y = self.fc(y)
-        #y = F.softmax(y,dim=1)
-        return y
-    
-    def init_hidden(self):
-        hidden = torch.zeros(1, self.batch_size, self.hidden_size)
-        return hidden
-
-class CNN(torch.nn.Module):
-    def __init__(self,vocab_size,emb_size,padding_idx,output_size,hidden_size):
-        super(self,CNN).__init__()
-        self.emb =nn.Embedding(vocab_size,emb_size,padding_idx=padding)
-        self.conv = nn.Conv1d(emb_size,hidden_size,3,padding=1) # in_channels:dw, out_channels: dh
-        self.relu = nn.ReLU()
-        #最大値プーリング
-        self.pool = nn.MaxPool1d(10)
-        self.linear = nn.Linear(hidden_size,output_size)
-        
-
-    def forward(self, x, h=None):
-        x = self.emb(x)
-        x = x.view(x.shape[0], x.shape[2], x.shape[1])
-        x = self.conv(x)
-        x = self.relu(x)
-        x = x.view(x.shape[0], x.shape[1], x.shape[2])
-        x = self.pool(x)
-        x = x.view(x.shape[0], x.shape[1])
-        y = self.linear(x)
-        y = F.softmax(y,dim=1)
-        return y
-
-model=CNN(V,dw,padding,output_size,dh).to(device)
-
-X_train = list2tensor(X_train,padding)
-Y_train = torch.tensor(Y_train, dtype = torch.int64)
-
-X_valid = list2tensor(X_valid,padding).to(device)
-Y_valid = torch.tensor(Y_valid, dtype = torch.int64)
-
-ds = TensorDataset(X_train.to(device), Y_train.to(device))
-loader = DataLoader(ds, batch_size= 1, shuffle=True)
-
-loss_fn = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=1e-3)
-
-fig = plt.figure()
-ax= fig.subplots(2)
-train_acc_list = []
-train_loss_list =[]
-
-valid_acc_list = []
-valid_loss_list = []
-
-for epoch in tqdm(range(10)):
-    for xx, yy in loader:
-        y_pred = model(xx)
-        loss = loss_fn(y_pred, yy)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-    
-    with torch.no_grad():
-        Y_pred = model(X_train.to(device))
-        loss = loss_fn(Y_pred,Y_train.to(device))
-        
-        Y_pred = Y_pred.cpu()
-        Y_train = Y_train.cpu()
-        score = accuracy(Y_pred,Y_train)
-
-        loss_value = loss.cpu()
-        train_acc_list.append(score)
-        train_loss_list.append(loss_value)
-
-
-        Y_pred = model(X_valid.to(device))
-        Y_valid = Y_valid.to(device)
-        loss = loss_fn(Y_pred,Y_valid)
-        Y_pred = Y_pred.cpu()
-        Y_valid = Y_valid.cpu()
-        score = accuracy(Y_pred,Y_valid)
-
-        loss_value = loss.cpu()
-        valid_acc_list.append(score)
-        valid_loss_list.append(loss_value)
-        
-    
-fig = plt.figure()
-ax= fig.subplots(2)
-ax[0].plot(train_loss_list,label='train')
-ax[1].plot(train_acc_list,label='train')
-ax[0].plot(valid_loss_list,label='valid')
-ax[1].plot(valid_acc_list,label='valid')
-
-ax[0].set_xlabel('epoch')
-ax[0].set_ylabel('loss')
-ax[1].set_xlabel('epoch')
-ax[1].set_ylabel('accuracy')
-
-ax[0].legend()
-ax[1].legend()
-fig.savefig('86.png')
+print(y_pred)
+"""
+tensor([[0.4660, 0.1788, 0.2841, 0.0711],
+        [0.4902, 0.1657, 0.2635, 0.0806],
+        [0.4138, 0.2305, 0.2709, 0.0848],
+        ...,
+        [0.3595, 0.1799, 0.3613, 0.0993],
+        [0.4729, 0.1870, 0.2550, 0.0852],
+        [0.4113, 0.1558, 0.3633, 0.0696]], grad_fn=<SoftmaxBackward>)
+"""

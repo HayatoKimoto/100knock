@@ -5,81 +5,64 @@ import re
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.utils.rnn import pad_sequence
+from torch.nn.utils.rnn import pack_sequence, pad_packed_sequence, pack_padded_sequence
+from word2id import get_id
+from word2id import get_len
 
 class RNN(nn.Module):
-    def __init__(self,vocab_size,emb_size,padding_idx,output_size,hidden_size):
+    def __init__(self,vocab_size,emb_size,output_size,hidden_size):
         super(RNN,self).__init__()
-        self.emb = nn.Embedding(vocab_size,emb_size,padding_idx=padding_idx)
+        self.emb = nn.Embedding(vocab_size,emb_size)
         self.rnn = nn.RNN(emb_size,hidden_size,batch_first =True)
-        self.fc = nn.Linear(hidden_size,output_size)
-        
+        self.fc = nn.Linear(hidden_size,output_size,bias=True)
 
-    def forward(self,x,h=None):
+    def forward(self,padded_packed_input):
+        x ,len_list = padded_packed_input
         x = self.emb(x)
-        y,h = self.rnn(x,h)
-        y=y[:,-1,:]
-        y = self.fc(y)
+        x = pack_padded_sequence(x, len_list, batch_first=True, enforce_sorted=False)
+        x,h = self.rnn(x)
+        y = self.fc(h)
+        y = y.squeeze(0)
         y = F.softmax(y,dim=1)
         return y
 
-def remove_mark(sentence):
-    specialChars = "!?#$%^&*().\"'" 
-    sentence = sentence.replace('.','')
-    for specialChar in specialChars:
-        sentence = sentence.replace(specialChar, '')
-    return sentence
-  
-def get_id(sentence):
-  r = []
-  for word in sentence:
-    r.append(d.get(word,0))
-  return r
-
-def df2id(df):
-  ids = []
-  for s in df.iloc[:,1].str.lower():
-    s=remove_mark(s)
-    ids.append(get_id(s.split()))
-  return ids
-
-def list2tensor(data,padding_id):
+def list2tensor(data):
   new = []
   for s in data:
     new.append(torch.tensor(s))
-
-  return pad_sequence(new,padding_value=padding,batch_first=True)
-
-#データの呼び出し
-train_df = pd.read_table('ans50/train.tsv', header=None)
-val_df   = pd.read_table('ans50/valid.tsv', header=None)
-test_df  = pd.read_table('ans50/test.tsv', header=None)
-
-#ID番号への変換
-vectorizer = CountVectorizer(min_df=2)
-train_title = train_df.iloc[:,1].str.lower()
-cnt = vectorizer.fit_transform(train_title).toarray()
-sm = cnt.sum(axis=0)
-idx = np.argsort(sm)[::-1]
-words = np.array(vectorizer.get_feature_names())[idx]
-d = dict()
-for i in range(len(words)):
-  d[words[i]] = i+1
+  
+  packed_inputs= pack_sequence(new,enforce_sorted=False)
+  padded_packed_inputs = pad_packed_sequence(packed_inputs, batch_first=True)
+  return padded_packed_inputs
 
 
-X_train=df2id(train_df)
-X_valid=df2id(val_df)
-X_test=df2id(test_df)
 
-V=len(d)+1
-padding=len(d)
+#データの読み込み
+X_train = get_id('ans50/train.tsv')
+X_valid = get_id('ans50/valid.tsv')
+X_test  = get_id('ans50/test.tsv')
+Y_train = np.loadtxt('ans50/Y_train.txt')
+Y_valid = np.loadtxt('ans50/Y_valid.txt')
+
+#パラメータの設定
+V=get_len()+1
 dw = 300
 dh = 50
 output_size =4
 
 
-model=RNN(V,dw,padding,4,dh)
-X_test = list2tensor(X_test,padding)
+model=RNN(V,dw,4,dh)
+X_test= list2tensor(X_test)
 y_pred = model(X_test)
 
 print(y_pred)
+
+"""
+tensor([[0.2116, 0.2378, 0.3269, 0.2238],
+        [0.1469, 0.3318, 0.2608, 0.2605],
+        [0.1510, 0.3017, 0.3326, 0.2146],
+        ...,
+        [0.2803, 0.1648, 0.2736, 0.2813],
+        [0.2022, 0.2300, 0.2815, 0.2863],
+        [0.1738, 0.5530, 0.1434, 0.1297]], grad_fn=<SoftmaxBackward>)
+"""
