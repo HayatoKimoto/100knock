@@ -13,6 +13,10 @@ from torch.nn.utils.rnn import pack_sequence, pad_packed_sequence, pack_padded_s
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
+def accuracy(pred, label):
+  pred = np.argmax(pred.data.numpy(), axis=1)
+  label = label.data.numpy()
+  return (pred == label).mean()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 cpu = torch.device("cpu")
@@ -51,6 +55,9 @@ for name, param in model.classifier.named_parameters():
 dataset = TensorDataset(X_train, Y_train)
 loader = DataLoader(dataset, batch_size=128, shuffle=True)
 
+dataset2 = TensorDataset(X_valid, Y_valid)
+loader2 = DataLoader(dataset2, batch_size=128, shuffle=True)
+
 optimizer = optim.SGD(model.parameters(), lr=1e-3)
 
 loss_fn = nn.CrossEntropyLoss()
@@ -60,22 +67,27 @@ for epoch in tqdm(range(10)):
   for xx, yy in loader:
     xx = xx.to(device)
     yy = yy.to(device)
-    #outputs=[loss,logits,hidden_states,attentions]
     outputs = model(xx,labels=yy)
     loss, logits = outputs[:2]
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
 
-torch.save(net.state_dict(), 'model.pth')
+torch.save(model.state_dict(), 'model.pth')
 
 model.eval()
+sum=0
 with torch.no_grad(): 
-    outputs = model(X_valid.to(device),labels=Y_valid.to(device))
-    loss, logits = outputs[:2]
-    Y_pred = logits.cpu()
-    Y_valid = Y_valid.cpu()
-    score = accuracy(Y_pred,Y_valid)
-    print(score)
+    for xx, yy in loader:
+        xx = xx.to(device)
+        yy = yy.to(device)
+        outputs = model(xx,labels=yy)
+        loss, logits = outputs[:2]
+        Y_pred = logits.cpu()
+        Y_valid = Y_valid.cpu()
+        sum+=accuracy(Y_pred,Y_valid)
+        score = accuracy(Y_pred,Y_valid)
+        print(score)
         
-        
+    print('acuuracy:',sum/X_valid.size(0))
+            
