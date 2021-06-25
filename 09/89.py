@@ -18,6 +18,7 @@ def accuracy(pred, label):
   label = label.data.numpy()
   return (pred == label).mean()
 
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 cpu = torch.device("cpu")
 
@@ -52,19 +53,20 @@ for name, param in model.classifier.named_parameters():
     param.requires_grad = True
 
 
-dataset = TensorDataset(X_train, Y_train)
-loader = DataLoader(dataset, batch_size=128, shuffle=True)
+dataset_t = TensorDataset(X_train, Y_train)
+loader_t = DataLoader(dataset_t, batch_size=128, shuffle=True)
 
-dataset2 = TensorDataset(X_valid, Y_valid)
-loader2 = DataLoader(dataset2, batch_size=128, shuffle=True)
+dataset_v = TensorDataset(X_valid, Y_valid)
+loader_v = DataLoader(dataset_v, batch_size=128, shuffle=True)
 
-optimizer = optim.SGD(model.parameters(), lr=1e-3)
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
 loss_fn = nn.CrossEntropyLoss()
 
-for epoch in tqdm(range(10)):
+
+for epoch in tqdm(range(100)):
   model.train()
-  for xx, yy in loader:
+  for xx, yy in loader_t:
     xx = xx.to(device)
     yy = yy.to(device)
     outputs = model(xx,labels=yy)
@@ -75,19 +77,24 @@ for epoch in tqdm(range(10)):
 
 torch.save(model.state_dict(), 'model.pth')
 
+#model.load_state_dict(torch.load("model.pth"))
 model.eval()
-sum=0
+total=0
 with torch.no_grad(): 
-    for xx, yy in loader:
+    for xx, yy in loader_v:
         xx = xx.to(device)
         yy = yy.to(device)
         outputs = model(xx,labels=yy)
         loss, logits = outputs[:2]
         Y_pred = logits.cpu()
-        Y_valid = Y_valid.cpu()
-        sum+=accuracy(Y_pred,Y_valid)
-        score = accuracy(Y_pred,Y_valid)
-        print(score)
+        yy = yy.cpu()
+        total+=accuracy(Y_pred,yy)
         
-    print('acuuracy:',sum/X_valid.size(0))
+    print('acuuracy:',total/len(loader2))
             
+
+"""
+[プログラムの結果]
+$python 89.py
+acuuracy: 0.9146938131313131
+"""
