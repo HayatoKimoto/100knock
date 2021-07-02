@@ -147,4 +147,10 @@ V_en = get_vocab_en()
 model = MyTransformer(device=device, max_len=max_len, source_vocab_length=V_ja, target_vocab_length=V_en).to(device)
 model.load_state_dict(torch.load('best_model.pt'))
 
-print(greeedy_decode_sentence(model,"私は毎日ゲームをします。"))
+print(greeedy_decode_sentence(model , "私は毎日ゲームをします。"))
+
+"""
+[プログラムの結果]
+%python 92.py
+ I will be able to Koui the first day and Koui Koui Koui .
+"""
