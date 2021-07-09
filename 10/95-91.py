@@ -224,7 +224,7 @@ def train(train_loader, valid_loader, model, optim, epoch):
             # bestモデル保存
             if valid_loss < best_valid_loss:
                 best_valid_loss, best_epoch, best_batch = valid_loss, epoch[0], i
-                torch.save(model.state_dict(), "best_model_94.pt")
+                torch.save(model.state_dict(), "best_model_95.pt")
                 print("best models saved")
             print(f"Best Valid Loss = {best_valid_loss} (Epoch: {best_epoch}, Batch: {best_batch})\n\n")
             model.train()
