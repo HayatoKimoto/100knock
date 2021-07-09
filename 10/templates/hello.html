@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h2>機械翻訳</h2>
+    <div id="text-box">
+    <h3>日本語</h3>
+    <form action="/calc" method="POST">
+    <input type="text" id="ja_text" name="src" size=30 placeholder="テキストを入力してください"></p>
+    <input id="start" type="submit" value="翻訳する" onclick="func1()"/>
+    </form>
+    </div>
+
+    <div id="output"></div>
+
+
+
+    <script>
+        function func1() {
+            let myname_val = "翻訳しています";
+            document.getElementById("output").innerHTML = `${myname_val}`;
+        }
+    </script>
+
+{% endblock %}
